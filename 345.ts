@@ -3,12 +3,17 @@ import { serve } from "https://deno.land/std/http/server.ts";
 // 从环境变量中获取你的Vocechat Space URL
 const UPSTREAM_URL = Deno.env.get("UPSTREAM_URL");
 
-if (!UPSTREAM_URL) {
-  console.error("错误：环境变量 UPSTREAM_URL 未设置！");
-  Deno.exit(1);
-}
-
 serve(async (req: Request) => {
+  // 修正：Deno Deploy禁止使用Deno.exit()。
+  // 我们将检查移入请求处理函数内部。如果环境变量未设置，则为每个请求返回一个错误响应。
+  if (!UPSTREAM_URL) {
+    console.error("配置错误：环境变量 UPSTREAM_URL 未设置！");
+    return new Response(
+      "Server configuration error: UPSTREAM_URL environment variable is not set.",
+      { status: 500 }
+    );
+  }
+
   const url = new URL(req.url);
   const upstreamUrl = new URL(UPSTREAM_URL);
 
